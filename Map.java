@@ -1,12 +1,20 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package pkginterface;
 
-
-
+/**
+ *
+ * @author user
+ */
 public class Map
 {
    private String mapName = "";
-   private Area[][] coordinate = new Area[5][5];
+   private Area[][] coordinate = new Area[5][5];  //makes a 2d array of areas with coordinates
    private Area currentArea = null;
-   private int newIndex = 0;
+   private int newIndex = 0;  //increments for each area added to create coordinates for each area
    private Area previousArea = null;
    private Area nextArea = null;
    
@@ -50,10 +58,10 @@ public class Map
       newIndex++;
    }
    
-   public void addNewArea(Area a)
+   private void addNewArea(Area a)
    {
-      int j = newIndex % 5;
-      int i = newIndex / 5;
+      int j = newIndex % 5;  //indicates the column of each area
+      int i = newIndex / 5;  //indicates the rows
       if(i < 5 && j < 5)
       {
          coordinate[i][j] = a;
@@ -65,64 +73,76 @@ public class Map
       newIndex++;
    }
    
-   public void moveNorth()
+   public boolean moveNorth(int step)
    {
+      boolean move = false;
       int row = currentArea.getRow();
       int column = currentArea.getColumn();
-      if(row < 4)
+      if(row < 4 && coordinate[row+1][column].getOpenStep() <= step) //Story is organized into steps, and each area is set to open at a specific step
       {
          previousArea = coordinate[row][column];
          currentArea = coordinate[row + 1][column];
+         move = true;
       }
       else
       {
          System.out.println("unable to travel North");
       }
+      return move;
    }
    
-   public void moveSouth()
+   public boolean moveSouth(int step)
    {
+      boolean move = false;
       int row = currentArea.getRow();
       int column = currentArea.getColumn();
-      if(row > 0)
+      if(row > 0 && coordinate[row-1][column].getOpenStep() <= step)
       {
          previousArea = coordinate[row][column];
          currentArea = coordinate[row - 1][column];
+         move = true;
       }
       else
       {
          System.out.println("unable to travel South");
       }
+      return move;
    }
    
-   public void moveEast()
+   public boolean moveEast(int step)
    {
+      boolean move = false;
       int row = currentArea.getRow();
       int column = currentArea.getColumn();
-      if(column < 4)
+      if(column < 4 && coordinate[row][column+1].getOpenStep() <= step)
       {
          previousArea = coordinate[row][column];
          currentArea = coordinate[row][column + 1];
+         move = true;
       }
       else
       {
          System.out.println("unable to travel East");
       }
+      return move;
    }
    
-   public void moveWest()
+   public boolean moveWest(int step)
    {
+      boolean move = false;
       int row = currentArea.getRow();
       int column = currentArea.getColumn();
-      if(column > 0)
+      if(column > 0 && coordinate[row][column-1].getOpenStep() <= step)
       {
          previousArea = coordinate[row][column];
          currentArea = coordinate[row][column - 1];
+         move = true;
       }
       else
       {
          System.out.println("unable to travel West");
       }
+      return move;
    }
    
    public void setCurrentArea(int r, int c)
@@ -135,102 +155,178 @@ public class Map
       return currentArea;
    }
    
-   public void loadMap1()
+   public String getTravelOptions(int step)
+   {
+      String options = "";
+      
+      if(currentArea.getRow() + 1 <= 4)
+      {
+         if(step >= coordinate[currentArea.getRow() + 1][currentArea.getColumn()].getOpenStep())
+         {
+            options += "1 - North: " + coordinate[currentArea.getRow() + 1][currentArea.getColumn()].getName() + "\n";
+         }
+         else
+         {
+            options += "1 - North: " + coordinate[currentArea.getRow() + 1][currentArea.getColumn()].getName() + " (locked)\n";
+         }
+      }
+      else
+      {
+         options += "1 - North: This path is blocked\n";
+      }
+      
+      
+      if(currentArea.getRow() - 1 >= 0)
+      {
+         if(step >= coordinate[currentArea.getRow() - 1][currentArea.getColumn()].getOpenStep())
+         {
+            options += "2 - South: " + coordinate[currentArea.getRow() - 1][currentArea.getColumn()].getName() + "\n";
+         }
+         else
+         {
+            options += "2 - South: " + coordinate[currentArea.getRow() - 1][currentArea.getColumn()].getName() + " (locked)\n";
+         }
+      }
+      else
+      {
+         options += "2 - South: This path is blocked\n";
+      }
+      
+      
+      if(currentArea.getColumn() + 1 <= 4)
+      {
+         if(step >= coordinate[currentArea.getRow()][currentArea.getColumn() + 1].getOpenStep())
+         {
+            options += "3 - East: " + coordinate[currentArea.getRow()][currentArea.getColumn() + 1].getName() + "\n";
+         }
+         else
+         {
+            options += "3 - East: " + coordinate[currentArea.getRow()][currentArea.getColumn() + 1].getName() + " (locked)\n";
+         }
+      }
+      else
+      {
+         options += "3 - East: This path is blocked\n";
+      }
+      
+      
+      if(currentArea.getColumn() - 1 >= 0)
+      {
+         if(step >= coordinate[currentArea.getRow()][currentArea.getColumn() - 1].getOpenStep())
+         {
+            options += "4 - West: " + coordinate[currentArea.getRow()][currentArea.getColumn() - 1].getName() + "\n";
+         }
+         else
+         {
+            options += "4 - West: " + coordinate[currentArea.getRow()][currentArea.getColumn() - 1].getName() + " (locked)\n";
+         }
+      }
+      else
+      {
+         options += "4 - West: This path is blocked\n";
+      }
+      
+      return options;
+      
+   }
+   
+   
+   
+   private void loadMap1()
    {
 //row one
-      Area Shore = new Area(0, 0, 0, "Rocky Shore", "You find a rocky outcropping on the shore that gets progressively harder to maneuver.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
-      addNewArea(Shore);
+      //new Area( row#, column#, combatChance#, typeOfCombat#, bossObject, openStep#, Name string, description string with options for travel
+      Area Shore = new Area(0, 0, 0, 1, null, 1, "Balcony", "You glance into the sky and see the three moons.");
+      addNewArea(Shore);  //adds a new area to coordinate[][] which is the array of areas that makes up the map
       
-      Area Start = new Area(0, 1, 0, "Starting area", "You are at a campsite on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Shipwreck\nWest - Rocky Shore");
+      Area Start = new Area(0, 1, 0, 1, null, 1, "John's apartment", "A apartment studio located in the center of the city.\nJohn works, eats, sleeps, and does everything else here.");
       addNewArea(Start);
       setCurrentArea(0,1);
       
-      Area Ship = new Area(0, 2, 0, "Shipwreck", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - River Outlet\nWest - Beach Campsite");
+      Area Ship = new Area(0, 2, 0, 1, null, 1, "Adam's Coffee Shop", "A whole in the wall coffee shop known for its scones and coffee, it seems more like a bar than a coffee shop.");
       addNewArea(Ship);
       
-      Area Geyser = new Area(0, 3, 0, "Geyser", "You arrive at a geyser that sprays refreshing water into the air.\nNorth - Cliffside\nSouth - Ocean\nEast - River Outlet\nWest - Shipwreck");
+      Area Geyser = new Area(0, 3, 100, 1, null, 1, "Abbey Road", "The main road within the slums full of merchants, theives, fortune tellers, and anyone else trying to make quick cash.");
       addNewArea(Geyser);
       
-      Area Outlet = new Area(0, 4, 0, "River Outlet", "You get to the mouth of the river.\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Outlet = new Area(0, 4, 0, 1, null, 1, "Quartz Headquarters", "Quartz agency is a run down building located inside the slums, it is where all of the information brokers\nhave gathered and exchange valuable information.");
       addNewArea(Outlet);
       
 //row two
-      Area Cabin = new Area(1, 0, 0, "Deserted Cabin", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Cabin = new Area(1, 0, 0, 1, null, 3, "Seating area", "This is where John likes to unwind and stare upon the city.");
       addNewArea(Cabin);
       
-      Area Forest = new Area(1, 1, 0, "Clearing in the Forest", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Forest = new Area(1, 1, 0, 1, null, 2, "Garden Plaza", "A high end plaza located in the higher district, where the busy and rich can relax.");
       addNewArea(Forest);
       
-      Area Gravel = new Area(1, 2, 0, "Gravel Path", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Gravel = new Area(1, 2, 0, 1, null, 4, "Coffee shop basement", "Underground Adam keeps all of his equipment for spying.");
       addNewArea(Gravel);
       
-      Area Thorns = new Area(1, 3, 0, "Thorny Woods", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Thorns = new Area(1, 3, 100, 1, null, 3, "Abbey Alley", "Popular hang out shady people and getting cheap watches, and LOTS of mugging.");
       addNewArea(Thorns);
       
-      Area Bank = new Area(1, 4, 0, "River Bank", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Bank = new Area(1, 4, 0, 1, null, 4, "Head Quarters Bathroom", "Bathroom with a strange door.");
       addNewArea(Bank);
       
       
 //row three
-      Area Well = new Area(2, 0, 0, "Water Well", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Well = new Area(2, 0, 0, 1, null, 4, "Bar Lounge", "A place to meet exciting young people who drink and occasionally dance.");
       addNewArea(Well);
       
-      Area Field = new Area(2, 1, 0, "Field of Tall Grass", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
-      addNewArea(Field);
-      
-      Area Lake = new Area(2, 2, 0, "Lake of Health", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Lake = new Area(2, 1, 0, 1, new Boss(), 4, "VIP section", "International Drug Smuggler Daily rates this spot 10/10 for quality seats and quality drinks.");
       addNewArea(Lake);
       
-      Area Dark = new Area(2, 3, 0, "Dark Path", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Field = new Area(2, 2, 0, 1, null, 5, "Gypsy Medical Center", "Recover from your injuries.");
+      addNewArea(Field);
+      
+      Area Dark = new Area(2, 3, 25, 2, null, 5, "Dark Path", "Where the Gypsies gather their medical supplies.");
       addNewArea(Dark);
       
-      Area Bridge = new Area(2, 4, 0, "Broken Bridge", "(description here).\nNorth - River Bank\nSouth - Ocean\nEast - River\nWest - Geyser");
+      Area Bridge = new Area(2, 4, 10, 1, null, 5, "Gambling pit", "Illegal gambling, smoke filled rooms, smell of wine, and cheap perfume.");
       addNewArea(Bridge);
 
 //row 4      
-      Area Farm = new Area(3, 0, 1, "Abandoned Farm", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Farm = new Area(3, 0, 100, 1, null, 6, "Burger Joint", "You find the remains of a ship on the beach.");
       addNewArea(Farm);
       
-      Area Crater = new Area(3, 1, 1, "Crater", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Crater = new Area(3, 1, 100, 1, null, 6, "Water Fountain", "You find the remains of a ship on the beach.");
       addNewArea(Crater);
       
-      Area Staircase = new Area(3, 2, 1, "Stone Staircase", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Staircase = new Area(3, 2, 100, 1, null, 6, "Arby's", "You find the remains of a ship on the beach.");
       addNewArea(Staircase);
       
-      Area Watchtower = new Area(3, 3, 1, "Watchtower", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Watchtower = new Area(3, 3, 100, 1, null, 6, "Watchtower", "You find the remains of a ship on the beach.");
       addNewArea(Watchtower);
       
-      Area Dam = new Area(3, 4, 1, "River Dam", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Dam = new Area(3, 4, 100, 1, null, 6, "River Dam", "You find the remains of a ship on the beach.");
       addNewArea(Dam);
 
 //row 5
-      Area Cave = new Area(4, 0, 1, "Cave", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Cave = new Area(4, 0, 100, 1, null, 6, "Cave", "You find the remains of a ship on the beach.");
       addNewArea(Cave);
       
-      Area Wall = new Area(4, 1, 1, "Castle Wall", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Wall = new Area(4, 1, 100, 1, null, 6, "Castle Wall", "You find the remains of a ship on the beach.");
       addNewArea(Wall);
       
-      Area Entrance = new Area(4, 2, 1, "Castle Entrance", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Entrance = new Area(4, 2, 100, 1, null, 6, "Castle Entrance", "You find the remains of a ship on the beach.");
       addNewArea(Entrance);
       
-      Area Village = new Area(4, 3, 1, "Village", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Village = new Area(4, 3, 100, 1, null, 6, "Village", "You find the remains of a ship on the beach.");
       addNewArea(Village);
       
-      Area Resivior = new Area(4, 4, 1, "Resivior Bank", "You find the remains of a ship on the beach.\nNorth - Forest\nSouth - Ocean\nEast - Beach Campsite\nWest - River Outlet");
+      Area Resivior = new Area(4, 4, 100, 1, null, 6, "Resivior Bank", "You find the remains of a ship on the beach.");
       addNewArea(Resivior);
 
    }
    
-   public void loadMap2()
+   private void loadMap2()
    {
    
    }
    
-   public void loadMap3()
+   private void loadMap3()
    {
    
    }
-   
-   
-}
 
+}
